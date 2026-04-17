@@ -6,7 +6,7 @@ const { ccclass, property } = _decorator;
 export class FoodSpawner extends Component {
 
     @property(Prefab) public dotPrefab: Prefab = null;
-    @property(Prefab) public applePrefab: Prefab = null;
+    @property(Prefab) public powerPrefab: Prefab = null;
     @property(Prefab) public strawberryPrefab: Prefab = null;
     @property(Node) public foodParent: Node = null;
 
@@ -51,9 +51,9 @@ export class FoodSpawner extends Component {
             selectedPrefab = this.dotPrefab;
             typeName = "dot";
         } else if (rand < 0.95) {
-            // 10% kemungkinan muncul Apple (Langka)
-            selectedPrefab = this.applePrefab;
-            typeName = "apple";
+            // 10% kemungkinan muncul power (Langka)
+            selectedPrefab = this.powerPrefab;
+            typeName = "power";
         } else {
             // 5% kemungkinan muncul Strawberry (Sangat Langka / Epic)
             selectedPrefab = this.strawberryPrefab;
