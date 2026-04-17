@@ -1,0 +1,20 @@
+# Cocos Creator folders
+/library/
+/temp/
+/local/
+/profiles/
+/build/
+/native/
+
+# Logs and Misc
+atrace.pdm
+crash.json
+logs/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Scripting
+bin/
+obj/

@@ -4,6 +4,12 @@
     "is3DIcon": false,
     "iconSize": 2,
     "gridVisible": true,
+    "gridColor": [
+      166,
+      166,
+      166,
+      255
+    ],
     "originAxis2D": {
       "x_visible": true,
       "y_visible": true,
@@ -14,18 +20,12 @@
       "y_visible": false,
       "z_visible": true
     },
-    "gridColor": [
-      166,
-      166,
-      166,
-      255
-    ],
     "transformToolName": "position",
     "pivot": "pivot",
     "coordinate": "local",
     "toolsVisibility3d": true
   },
-  "__version__": "1.0.3",
+  "__version__": "1.0.0",
   "builder": {},
   "snap-configs": {
     "position": {
