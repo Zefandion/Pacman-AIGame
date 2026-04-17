@@ -1,9 +1,16 @@
-import { _decorator, Component, Node, Vec3, UITransform } from 'cc';
+import { _decorator, Component, Node, Vec3, Sprite, SpriteFrame, UITransform } from 'cc';
 import { Pacman } from './Pacman'; // Import class Pacman
 const { ccclass, property } = _decorator;
 
 @ccclass('GhostAI')
 export class GhostAI extends Component {
+
+    @property({ type: SpriteFrame, tooltip: "Masukkan gambar hantu biru ke sini" })
+    public scaredSprite: SpriteFrame = null;
+
+    private sprite: Sprite = null;
+    private normalSprite: SpriteFrame = null; // Untuk menyimpan gambar asli hantu
+    private initialPosition: Vec3 = new Vec3();
 
     @property({ tooltip: "Kecepatan gerak hantu" })
     public speed: number = 150;
@@ -11,23 +18,47 @@ export class GhostAI extends Component {
     @property({ type: Node, tooltip: "Node Bingkai / Area Bermain" })
     public playAreaNode: Node = null;
 
-    // --- BARU: PROPERTI UNTUK MENGEJAR PACMAN ---
     @property({ type: Node, tooltip: "Node Target (Pacman)" })
     public targetPacman: Node = null;
 
     @property({ tooltip: "Jarak pandang hantu untuk mulai mengejar" })
     public detectionRadius: number = 300;
-    // --------------------------------------------
 
     private moveDirection: Vec3 = new Vec3(0, 0, 0);
     private minX: number = 0; private maxX: number = 0;
     private minY: number = 0; private maxY: number = 0;
     
-    private isChasing: boolean = false; // Status apakah sedang mengejar
+    private isChasing: boolean = false; 
+
+    onLoad() {
+        this.sprite = this.getComponent(Sprite) || this.node.getComponentInChildren(Sprite);
+        if (this.sprite) {
+            this.normalSprite = this.sprite.spriteFrame;
+        }
+
+        // Mencatat posisi awal hantu ini saat game baru di-play
+        this.initialPosition.set(this.node.position); 
+    }
 
     start() {
         this.calculateScreenBounds();
         this.pickRandomDirection();
+    }
+
+    // --- FIX 1: FUNGSI RESPAWN MENGGUNAKAN SETTIMEOUT ---
+    public dieAndRespawn() {
+        this.node.active = false; // Matikan hantu
+
+        // Kita gunakan setTimeout bawaan JavaScript agar timer tetap berjalan
+        // meskipun node hantu sedang dalam keadaan mati (inactive)
+        setTimeout(() => {
+            // Pengecekan isValid mencegah error jika game sudah di-close saat timer berjalan
+            if (this.node && this.node.isValid) { 
+                this.node.setPosition(this.initialPosition);
+                this.node.active = true;
+                console.log("Ghost telah respawn di markasnya!");
+            }
+        }, 3000); // 3000 milidetik = 3 detik
     }
 
     private calculateScreenBounds() {
@@ -60,29 +91,47 @@ export class GhostAI extends Component {
     }
 
     update(deltaTime: number) {
-        // Jangan bergerak jika game belum dimulai
         if (!Pacman.GAME_UDAH_MULAI) return;
+        if (!this.targetPacman) return;
 
-        // --- BARU: LOGIKA MENGEJAR (SEEK AI) ---
-        if (this.targetPacman && this.targetPacman.active) {
-            // Hitung jarak antara hantu dan Pacman
-            let dist = Vec3.distance(this.node.position, this.targetPacman.position);
+        // --- FIX 2: DEKLARASI STATUS PACMAN CUKUP SATU KALI DI ATAS ---
+        let pacmanScript = this.targetPacman.getComponent('Pacman') as any;
+        let isPacmanEnergized = pacmanScript ? pacmanScript.isEnergized : false;
 
-            if (dist < this.detectionRadius) {
-                // Pacman terdeteksi! Ubah arah menuju Pacman
-                this.isChasing = true;
-                
-                // Vektor arah = Posisi Tujuan - Posisi Asal
-                Vec3.subtract(this.moveDirection, this.targetPacman.position, this.node.position);
-                this.moveDirection.normalize(); // Selalu normalize agar kecepatannya tidak meledak
-                
-            } else if (this.isChasing) {
-                // Pacman berhasil kabur dari radius deteksi!
-                this.isChasing = false;
-                this.pickRandomDirection(); // Kembali berjalan acak
+        // --- Logika Pergantian Sprite (Gambar) ---
+        if (this.sprite) {
+            if (isPacmanEnergized) {
+                this.sprite.spriteFrame = this.scaredSprite;
+            } else {
+                this.sprite.spriteFrame = this.normalSprite;
             }
         }
-        // ---------------------------------------
+
+        // --- LOGIKA MENGEJAR (SEEK & EVADE AI) ---
+        if (this.targetPacman.active) {
+            let ghostWorldPos = this.node.worldPosition;
+            let pacmanWorldPos = this.targetPacman.worldPosition;
+            let dist = Vec3.distance(ghostWorldPos, pacmanWorldPos);
+
+            if (dist < this.detectionRadius) {
+                this.isChasing = true;
+                
+                if (isPacmanEnergized) {
+                    // STATE: EVADE (KABUR)
+                    Vec3.subtract(this.moveDirection, ghostWorldPos, pacmanWorldPos);
+                } else {
+                    // STATE: CHASE (MENGEJAR)
+                    Vec3.subtract(this.moveDirection, pacmanWorldPos, ghostWorldPos);
+                }
+                
+                this.moveDirection.z = 0; 
+                this.moveDirection.normalize(); 
+                
+            } else if (this.isChasing) {
+                this.isChasing = false;
+                this.pickRandomDirection(); 
+            }
+        }
 
         // 1. Hitung langkah selanjutnya
         let step = new Vec3();
@@ -91,7 +140,6 @@ export class GhostAI extends Component {
         Vec3.add(newPos, this.node.position, step);
 
         // 2. Logika Memantul (Bouncing)
-        // Tetap diaktifkan agar hantu tidak tembus tembok bingkai meskipun sedang mengejar
         if (newPos.x <= this.minX) {
             newPos.x = this.minX; this.moveDirection.x *= -1;
         } else if (newPos.x >= this.maxX) {
