@@ -20,6 +20,17 @@ export class Pacman extends Component {
     @property({ tooltip: "Nama clip animasi menghadap BAWAH" })
     public clipNameDown: string = "pacman_down";
 
+    @property({ type: Node })
+    public startButton: Node = null;
+
+    @property({ type: Node })
+    public pauseButton: Node = null;
+
+    @property({ type: Node })
+    public restartButton: Node = null;
+
+    private isPaused: boolean = false;
+
     // --- PROPERTI UI & NODE REFERENSI ---
     @property({ type: Node, tooltip: "Node Parent dari semua Hantu (Folder ghost)" })
     public ghostParent: Node = null;
