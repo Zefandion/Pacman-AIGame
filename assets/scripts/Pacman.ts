@@ -3,6 +3,8 @@ const { ccclass, property } = _decorator;
 
 enum PacmanDirection { RIGHT, LEFT, UP, DOWN, IDLE }
 
+// p
+
 @ccclass('Pacman')
 export class Pacman extends Component {
 
