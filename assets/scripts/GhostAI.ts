@@ -181,4 +181,12 @@ export class GhostAI extends Component {
         // 3. Terapkan posisi baru
         this.node.position = newPos;
     }
+
+    public resetToInitialPosition() {
+        this.node.active = true;
+        this.node.setPosition(this.initialPosition);
+        this.isChasing = false;
+        this.cooldownTimer = 0;
+        this.pickRandomDirection();
+    }
 }

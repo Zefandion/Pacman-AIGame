@@ -121,10 +121,13 @@ export class Pacman extends Component {
     /**
      * Fungsi untuk dihubungkan dengan Button UI
      */
+
     public toggleAutoPilot() {
         this.isAutoPilot = !this.isAutoPilot;
         if (this.isAutoPilot && !Pacman.GAME_UDAH_MULAI) {
             Pacman.GAME_UDAH_MULAI = true;
+            if (this.startButton) this.startButton.active = false;
+            if (this.pauseButton) this.pauseButton.active = true;
         }
         console.log("Auto-Pilot: " + (this.isAutoPilot ? "ON" : "OFF"));
     }
@@ -132,12 +135,11 @@ export class Pacman extends Component {
     onKeyDown(event: EventKeyboard) {
         if (!Pacman.GAME_UDAH_MULAI) {
             Pacman.GAME_UDAH_MULAI = true;
-            
-            // --- FIX: Hilangkan tombol Start dan Munculkan Pause ---
+
             if (this.startButton) this.startButton.active = false;
             if (this.pauseButton) this.pauseButton.active = true;
-            
-            console.log("GAME DIMULAI dari Keyboard! Pacman mulai bergerak.");
+
+            console.log("GAME DIMULAI! Pacman mulai bergerak.");
         }
 
         switch(event.keyCode) {
@@ -447,18 +449,28 @@ export class Pacman extends Component {
 
         if (this.health <= 0) {
             Pacman.GAME_UDAH_MULAI = false;
-            if (this.restartButton) this.restartButton.active = true; // Munculkan Restart
             if (this.gameOverPanel) this.gameOverPanel.active = true; // Munculkan Panel Game Over
             if (this.pauseButton) this.pauseButton.active = false;   // Hilangkan Pause
-            console.log("==== GAME OVER ====");
+            console.log("==== GAME OVER ===="); 
         } else {
+            // KEMBALI KE POSISI AWAL (TENGAH) & RESET ARAH
+            this.node.setPosition(new Vec3(0, 0, 0));
+            this.moveDirection = new Vec3(0, 0, 0);
+
+            if (this.ghostParent) {
+                this.ghostParent.children.forEach(ghostNode => {
+                    let ghostScript = ghostNode.getComponent('GhostAI') as any;
+                    if (ghostScript) {
+                        ghostScript.resetToInitialPosition();
+                    }
+                });
+            }
+
             // Aktifkan mode kebal
             this.isInvulnerable = true;
             this.invulnerableTimer = 0;
 
-            // KEMBALI KE POSISI AWAL (TENGAH) & RESET ARAH
-            this.node.setPosition(new Vec3(0, 0, 0));
-            this.moveDirection = new Vec3(0, 0, 0);
+            this.isEnergized = false;
         }
     }
 
