@@ -29,6 +29,9 @@ export class Pacman extends Component {
     public pauseButton: Node = null;
 
     @property({ type: Node })
+    public autoButton: Node = null;
+
+    @property({ type: Node })
     public gameOverPanel: Node = null;
 
     private isPaused: boolean = false;
@@ -126,11 +129,22 @@ export class Pacman extends Component {
 
     public toggleAutoPilot() {
         this.isAutoPilot = !this.isAutoPilot;
+        
         if (this.isAutoPilot && !Pacman.GAME_UDAH_MULAI) {
             Pacman.GAME_UDAH_MULAI = true;
             if (this.startButton) this.startButton.active = false;
             if (this.pauseButton) this.pauseButton.active = true;
         }
+
+        // --- BARU: Cari teks (Label) dan ubah sesuai status ---
+        if (this.autoButton) {
+            let buttonText = this.autoButton.getComponentInChildren(Label);
+            if (buttonText) {
+                // Jika isAutoPilot true -> tulis "Manual", jika false -> tulis "Auto"
+                buttonText.string = this.isAutoPilot ? "Manual" : "Auto";
+            }
+        }
+
         console.log("Auto-Pilot: " + (this.isAutoPilot ? "ON" : "OFF"));
     }
 
@@ -245,16 +259,32 @@ export class Pacman extends Component {
 
     // Dipanggil saat tombol Pause ditekan
     public onPauseButtonClicked() {
-        this.isPaused = !this.isPaused;
+
+        if(Pacman.GAME_UDAH_MULAI){
+             this.isPaused = !this.isPaused;
         
-        if (this.isPaused) {
-            // Memberhentikan waktu game
-            director.pause(); 
-            console.log("Game Paused");
-        } else {
-            // Melanjutkan waktu game
-            director.resume();
-            console.log("Game Resumed");
+            // --- BARU: Cari teks (Label) di dalam tombol Pause ---
+            let buttonText = this.pauseButton.getComponentInChildren(Label);
+            
+            if (this.isPaused) {
+                // Memberhentikan waktu game
+                director.pause(); 
+                console.log("Game Paused");
+                
+                // --- BARU: Ubah teks menjadi Resume ---
+                if (buttonText) {
+                    buttonText.string = "Resume";
+                }
+            } else {
+                // Melanjutkan waktu game
+                director.resume();
+                console.log("Game Resumed");
+                
+                // --- BARU: Kembalikan teks menjadi Pause ---
+                if (buttonText) {
+                    buttonText.string = "Pause";
+                }
+            }
         }
     }
 
