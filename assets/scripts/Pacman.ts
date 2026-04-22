@@ -219,94 +219,91 @@ export class Pacman extends Component {
         let combinedDirection = new Vec3(0, 0, 0);
 
         const fleeWeight = 2.5;
+        const huntWeight = 3.5;
         const foodWeight = 1.0;
         const wallWeight = 4.0;
 
-        // PRIORITAS 1: MENGHINDARI HANTU (FLEE)
-        let fleeVector = new Vec3(0, 0, 0);
-        let ghostNear = false;
+        //Ngejar Ghost klo energized
+        let ghostVector = new Vec3(0, 0, 0);
+
         if (this.ghostParent) {
-        for (let ghost of this.ghostParent.children) {
-            if (!ghost.active) continue;
+            for (let ghost of this.ghostParent.children) {
+                if (!ghost.active) continue;
 
-            let dist = Vec3.distance(this.node.worldPosition, ghost.worldPosition);
-            if (dist < this.dangerRadius) {
-            ghostNear = true;
-            let escapeDir = new Vec3();
-            Vec3.subtract(
-                escapeDir,
-                this.node.worldPosition,
-                ghost.worldPosition,
-            );
+                let dist = Vec3.distance(this.node.worldPosition, ghost.worldPosition);
 
-            escapeDir.normalize();
-            let strength = (this.dangerRadius - dist) / this.dangerRadius;
-            Vec3.multiplyScalar(escapeDir, escapeDir, strength);
+                let detectionRange = this.isEnergized ? this.foodDetectionRadius : this.dangerRadius;
 
-            Vec3.add(fleeVector, fleeVector, escapeDir);
+                if (dist < detectionRange) {
+                    let ghostDir = new Vec3();
+
+                    if (this.isEnergized) {
+                        Vec3.subtract(ghostDir, ghost.worldPosition, this.node.worldPosition);
+                        ghostDir.normalize();
+
+                        let strength = (detectionRange - dist) / detectionRange;
+                        Vec3.multiplyScalar(ghostDir, ghostDir, strength * huntWeight);
+                    } else {
+                        Vec3.subtract(ghostDir, this.node.worldPosition, ghost.worldPosition);
+                        ghostDir.normalize();
+
+                        let strength = (this.dangerRadius - dist) / this.dangerRadius;
+                        Vec3.multiplyScalar(ghostDir, ghostDir, strength * fleeWeight);
+                    }
+                    Vec3.add(ghostVector, ghostVector, ghostDir);
+                }
             }
         }
-        }
 
-        // PRIORITAS 2: MENCARI MAKANAN (SEEK)
+        //Nyari makanan (SEEK)
         let seekVector = new Vec3(0, 0, 0);
         let closestFood = this.findClosestFood();
         if (closestFood) {
-        Vec3.subtract(
-            seekVector,
-            closestFood.worldPosition,
-            this.node.worldPosition,
-        );
-        seekVector.z = 0;
-        seekVector.normalize();
+            Vec3.subtract(seekVector, closestFood.worldPosition, this.node.worldPosition);
+            seekVector.z = 0;
+            seekVector.normalize();
+            Vec3.multiplyScalar(seekVector, seekVector, foodWeight);
         }
 
+        //Ngehindarin tembok
         let wallAvoidance = new Vec3(0, 0, 0);
         const wallBuffer = 50;
 
         // Left Wall
         if (this.node.position.x < this.minX + wallBuffer) {
-        let intensity =
-            (this.minX + wallBuffer - this.node.position.x) / wallBuffer;
-        wallAvoidance.x += intensity;
+            wallAvoidance.x += (this.minX + wallBuffer - this.node.position.x) / wallBuffer;
         }
+
         // Right Wall
         else if (this.node.position.x > this.maxX - wallBuffer) {
-        let intensity =
-            (this.node.position.x - (this.maxX - wallBuffer)) / wallBuffer;
-        wallAvoidance.x -= intensity;
+            wallAvoidance.x -= (this.node.position.x - (this.maxX - wallBuffer)) / wallBuffer;
         }
 
         // Bottom Wall
         if (this.node.position.y < this.minY + wallBuffer) {
-        let intensity =
-            (this.minY + wallBuffer - this.node.position.y) / wallBuffer;
-        wallAvoidance.y += intensity;
+            wallAvoidance.y += (this.minY + wallBuffer - this.node.position.y) / wallBuffer;
         }
+
         // Top Wall
         else if (this.node.position.y > this.maxY - wallBuffer) {
-        let intensity =
-            (this.node.position.y - (this.maxY - wallBuffer)) / wallBuffer;
-        wallAvoidance.y -= intensity;
+            wallAvoidance.y -= (this.node.position.y - (this.maxY - wallBuffer)) / wallBuffer;
         }
-
-        Vec3.multiplyScalar(fleeVector, fleeVector, fleeWeight);
-        Vec3.multiplyScalar(seekVector, seekVector, foodWeight);
         Vec3.multiplyScalar(wallAvoidance, wallAvoidance, wallWeight);
 
-        Vec3.add(combinedDirection, fleeVector, seekVector);
+        Vec3.add(combinedDirection, ghostVector, seekVector);
         Vec3.add(combinedDirection, combinedDirection, wallAvoidance);
 
         if (combinedDirection.lengthSqr() > 0.01) {
-        let targetDir = combinedDirection.normalize();
-        this.moveDirection.x = math.lerp(this.moveDirection.x, targetDir.x, 0.2);
-        this.moveDirection.y = math.lerp(this.moveDirection.y, targetDir.y, 0.2);
-        this.moveDirection.normalize();
+            let targetDir = combinedDirection.normalize();
+
+            this.moveDirection.x = math.lerp(this.moveDirection.x, targetDir.x, 0.2);
+            this.moveDirection.y = math.lerp(this.moveDirection.y, targetDir.y, 0.2);
+            this.moveDirection.normalize();
         } else {
-        if (this.moveDirection.lengthSqr() === 0) {
-            let angle = Math.random() * Math.PI * 2;
-            this.moveDirection = new Vec3(Math.cos(angle), Math.sin(angle), 0);
-        }
+            if (this.moveDirection.lengthSqr() === 0) {
+                let angle = Math.random() * Math.PI * 2;
+                this.moveDirection = new Vec3(Math.cos(angle), Math.sin(angle), 0);
+            }
         }
     }
 
