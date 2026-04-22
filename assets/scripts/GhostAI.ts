@@ -24,10 +24,18 @@ export class GhostAI extends Component {
     @property({ tooltip: "Jarak pandang hantu untuk mulai mengejar" })
     public detectionRadius: number = 300;
 
+    @property({ tooltip: "Berapa lama hantu mengejar (detik)" })
+    public chaseDuration: number = 5.0;
+
+    @property({ tooltip: "Cooldown sebelum bisa mengejar lagi (detik)" })
+    public chaseCooldown: number = 6.0;
+
     private moveDirection: Vec3 = new Vec3(0, 0, 0);
     private minX: number = 0; private maxX: number = 0;
     private minY: number = 0; private maxY: number = 0;
     
+    private chaseTimer: number = 5.0;
+    private cooldownTimer: number = 6.0;
     private isChasing: boolean = false; 
 
     onLoad() {
@@ -113,8 +121,17 @@ export class GhostAI extends Component {
             let pacmanWorldPos = this.targetPacman.worldPosition;
             let dist = Vec3.distance(ghostWorldPos, pacmanWorldPos);
 
-            if (dist < this.detectionRadius) {
+            if(this.cooldownTimer > 0) {
+                this.cooldownTimer -= deltaTime;
+            }
+
+            if (!this.isChasing && dist < this.detectionRadius && this.cooldownTimer <= 0) {
                 this.isChasing = true;
+                this.chaseTimer = this.chaseDuration;
+            }
+
+            if (this.isChasing) {
+                this.chaseTimer -= deltaTime;
                 
                 if (isPacmanEnergized) {
                     // STATE: EVADE (KABUR)
@@ -123,13 +140,22 @@ export class GhostAI extends Component {
                     // STATE: CHASE (MENGEJAR)
                     Vec3.subtract(this.moveDirection, pacmanWorldPos, ghostWorldPos);
                 }
-                
+
                 this.moveDirection.z = 0; 
                 this.moveDirection.normalize(); 
                 
-            } else if (this.isChasing) {
-                this.isChasing = false;
-                this.pickRandomDirection(); 
+                if (this.chaseTimer <= 0) {
+                    this.isChasing = false;
+                    this.cooldownTimer = this.chaseCooldown;
+                    this.pickRandomDirection();
+                }
+
+                if (dist > this.detectionRadius) {
+                    this.isChasing = false;
+                    this.cooldownTimer = this.chaseCooldown;
+                    this.pickRandomDirection();
+                }
+
             }
         }
 
