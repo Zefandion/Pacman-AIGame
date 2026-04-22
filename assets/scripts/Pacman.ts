@@ -411,13 +411,24 @@ export class Pacman extends Component {
             console.log("==== GAME OVER ====");
             if (this.nodeImage) this.nodeImage.active = false; 
         } else {
+            // KEMBALI KE POSISI AWAL (TENGAH) & RESET ARAH
+            this.node.setPosition(new Vec3(0, 0, 0));
+            this.moveDirection = new Vec3(0, 0, 0);
+
+            if (this.ghostParent) {
+                this.ghostParent.children.forEach(ghostNode => {
+                    let ghostScript = ghostNode.getComponent('GhostAI') as any;
+                    if (ghostScript) {
+                        ghostScript.resetToInitialPosition();
+                    }
+                });
+            }
+
             // Aktifkan mode kebal
             this.isInvulnerable = true;
             this.invulnerableTimer = 0;
 
-            // KEMBALI KE POSISI AWAL (TENGAH) & RESET ARAH
-            this.node.setPosition(new Vec3(0, 0, 0));
-            this.moveDirection = new Vec3(0, 0, 0);
+            this.isEnergized = false;
         }
     }
 
