@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, input, Input, EventKeyboard, KeyCode, Vec3, Animation, math, view, UITransform, Sprite, Label } from 'cc';
+import { _decorator, Component, Node, input, Input, EventKeyboard, KeyCode, Vec3, Animation, math, view, UITransform, Sprite, Label, director } from 'cc';
 const { ccclass, property } = _decorator;
 
 enum PacmanDirection { RIGHT, LEFT, UP, DOWN, IDLE }
@@ -226,6 +226,29 @@ export class Pacman extends Component {
         }
     }
 
+    // Dipanggil saat tombol Start ditekan
+    public onStartButtonClicked() {
+        Pacman.GAME_UDAH_MULAI = true;
+        if (this.startButton) this.startButton.active = false;
+        if (this.pauseButton) this.pauseButton.active = true;
+        console.log("Game Dimulai!");
+    }
+
+    // Dipanggil saat tombol Pause ditekan
+    public onPauseButtonClicked() {
+        this.isPaused = !this.isPaused;
+        
+        if (this.isPaused) {
+            // Memberhentikan waktu game
+            director.pause(); 
+            console.log("Game Paused");
+        } else {
+            // Melanjutkan waktu game
+            director.resume();
+            console.log("Game Resumed");
+        }
+    }
+
     private runAutoPilot() {
         let combinedDirection = new Vec3(0, 0, 0);
 
@@ -419,8 +442,9 @@ export class Pacman extends Component {
 
         if (this.health <= 0) {
             Pacman.GAME_UDAH_MULAI = false;
+            if (this.restartButton) this.restartButton.active = true; // Munculkan Restart
+            if (this.pauseButton) this.pauseButton.active = false;   // Hilangkan Pause
             console.log("==== GAME OVER ====");
-            if (this.nodeImage) this.nodeImage.active = false; 
         } else {
             // Aktifkan mode kebal
             this.isInvulnerable = true;
@@ -430,6 +454,12 @@ export class Pacman extends Component {
             this.node.setPosition(new Vec3(0, 0, 0));
             this.moveDirection = new Vec3(0, 0, 0);
         }
+    }
+
+    // Dipanggil saat tombol Restart ditekan
+    public onRestartButtonClicked() {
+        // Melakukan reload scene untuk mereset semua status
+        director.loadScene(director.getScene().name);
     }
 
     private determineFacing(dir: Vec3): PacmanDirection {
