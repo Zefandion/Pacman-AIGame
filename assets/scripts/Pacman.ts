@@ -3,6 +3,8 @@ const { ccclass, property } = _decorator;
 
 enum PacmanDirection { RIGHT, LEFT, UP, DOWN, IDLE }
 
+// p
+
 @ccclass('Pacman')
 export class Pacman extends Component {
 
@@ -27,7 +29,7 @@ export class Pacman extends Component {
     public pauseButton: Node = null;
 
     @property({ type: Node })
-    public restartButton: Node = null;
+    public gameOverPanel: Node = null;
 
     private isPaused: boolean = false;
 
@@ -449,7 +451,7 @@ export class Pacman extends Component {
 
         if (this.health <= 0) {
             Pacman.GAME_UDAH_MULAI = false;
-            if (this.restartButton) this.restartButton.active = true; // Munculkan Restart
+            if (this.gameOverPanel) this.gameOverPanel.active = true; // Munculkan Panel Game Over
             if (this.pauseButton) this.pauseButton.active = false;   // Hilangkan Pause
             console.log("==== GAME OVER ===="); 
         } else {
@@ -476,8 +478,16 @@ export class Pacman extends Component {
 
     // Dipanggil saat tombol Restart ditekan
     public onRestartButtonClicked() {
-        // Melakukan reload scene untuk mereset semua status
-        director.loadScene(director.getScene().name);
+        console.log("Tombol Restart Ditekan! Memuat ulang game...");
+        
+        // 1. WAJIB: Cairkan waktu game jika sebelumnya sempat ter-pause
+        director.resume(); 
+        
+        // 2. WAJIB: Reset variabel static agar tidak nge-bug
+        Pacman.GAME_UDAH_MULAI = false; 
+
+        // 3. Reload scene saat ini
+        director.loadScene("scene");
     }
 
     private determineFacing(dir: Vec3): PacmanDirection {
