@@ -2,7 +2,7 @@
   "ver": "1.0.26",
   "importer": "image",
   "imported": true,
-  "uuid": "14e5ec69-a631-46ee-8e52-ddf0530ede17",
+  "uuid": "0c137420-4597-48d6-9104-437fe95f2394",
   "files": [
     ".json",
     ".png"
@@ -10,8 +10,8 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "14e5ec69-a631-46ee-8e52-ddf0530ede17@6c48a",
-      "displayName": "pause-button",
+      "uuid": "0c137420-4597-48d6-9104-437fe95f2394@6c48a",
+      "displayName": "keyboard-key",
       "id": "6c48a",
       "name": "texture",
       "userData": {
@@ -22,7 +22,7 @@
         "mipfilter": "none",
         "anisotropy": 0,
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "14e5ec69-a631-46ee-8e52-ddf0530ede17",
+        "imageUuidOrDatabaseUri": "0c137420-4597-48d6-9104-437fe95f2394",
         "visible": false
       },
       "ver": "1.0.22",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "14e5ec69-a631-46ee-8e52-ddf0530ede17@f9941",
-      "displayName": "pause-button",
+      "uuid": "0c137420-4597-48d6-9104-437fe95f2394@f9941",
+      "displayName": "keyboard-key",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,9 +45,9 @@
         "offsetX": 0,
         "offsetY": 0,
         "trimX": 0,
-        "trimY": 0,
+        "trimY": 61,
         "width": 512,
-        "height": 512,
+        "height": 390,
         "rawWidth": 512,
         "rawHeight": 512,
         "borderTop": 0,
@@ -62,16 +62,16 @@
         "vertices": {
           "rawPosition": [
             -256,
-            -256,
+            -195,
             0,
             256,
-            -256,
+            -195,
             0,
             -256,
-            256,
+            195,
             0,
             256,
-            256,
+            195,
             0
           ],
           "indexes": [
@@ -84,37 +84,37 @@
           ],
           "uv": [
             0,
+            451,
             512,
-            512,
-            512,
+            451,
             0,
-            0,
+            61,
             512,
-            0
+            61
           ],
           "nuv": [
             0,
-            0,
+            0.119140625,
             1,
+            0.119140625,
             0,
-            0,
+            0.880859375,
             1,
-            1,
-            1
+            0.880859375
           ],
           "minPos": [
             -256,
-            -256,
+            -195,
             0
           ],
           "maxPos": [
             256,
-            256,
+            195,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "14e5ec69-a631-46ee-8e52-ddf0530ede17@6c48a",
+        "imageUuidOrDatabaseUri": "0c137420-4597-48d6-9104-437fe95f2394@6c48a",
         "atlasUuid": ""
       },
       "ver": "1.0.12",
@@ -129,6 +129,6 @@
     "hasAlpha": true,
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "14e5ec69-a631-46ee-8e52-ddf0530ede17@f9941"
+    "redirect": "0c137420-4597-48d6-9104-437fe95f2394@f9941"
   }
 }

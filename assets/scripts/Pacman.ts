@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, input, Input, EventKeyboard, KeyCode, Vec3, Animation, math, view, UITransform, Sprite, Label, director } from 'cc';
+import { _decorator, Component, Node, input, Input, EventKeyboard, KeyCode, Vec3, Animation, math, view, UITransform, Sprite, Label, director, sys } from 'cc';
 const { ccclass, property } = _decorator;
 
 enum PacmanDirection { RIGHT, LEFT, UP, DOWN, IDLE }
@@ -21,6 +21,11 @@ export class Pacman extends Component {
     public clipNameUp: string = "pacman_up";
     @property({ tooltip: "Nama clip animasi menghadap BAWAH" })
     public clipNameDown: string = "pacman_down";
+
+    @property({ type: Label, tooltip: "Label untuk menampilkan Best Score" })
+    public bestScoreLabel: Label = null;
+
+    private bestScore: number = 0; // Untuk menyimpan angka rekor tertinggi
 
     @property({ type: Node })
     public startButton: Node = null;
@@ -92,6 +97,18 @@ export class Pacman extends Component {
 
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+
+        let savedScore = sys.localStorage.getItem("pacman_best_score");
+        
+        if (savedScore) {
+            // Jika ada, ubah teksnya menjadi angka (karena localStorage menyimpannya sebagai teks)
+            this.bestScore = parseInt(savedScore);
+        }
+
+        // Tampilkan di layar
+        if (this.bestScoreLabel) {
+            this.bestScoreLabel.string = "Best Score: " + this.bestScore;
+        }
     }
 
     onDestroy() {
@@ -431,7 +448,19 @@ export class Pacman extends Component {
         this.score += points;
 
         if (this.scoreLabel) {
-            this.scoreLabel.string = "Score: " + this.score;
+            this.scoreLabel.string = this.score.toString();
+        }
+
+        if (this.score > this.bestScore) {
+            this.bestScore = this.score; // Pecahkan rekor!
+            
+            // Tampilkan di layar secara real-time
+            if (this.bestScoreLabel) {
+                this.bestScoreLabel.string = "Best Score: " + this.bestScore;
+            }
+
+            // SIMPAN PERMANEN ke dalam memori komputer/HP pemain
+            sys.localStorage.setItem("pacman_best_score", this.bestScore.toString());
         }
 
         foodNode.destroy();
@@ -458,7 +487,18 @@ export class Pacman extends Component {
 
                     this.score += 200; // Bonus poin makan hantu
                     console.log("Nyam! Pac-Man memakan hantu!");
-                    if (this.scoreLabel) this.scoreLabel.string = "Score: " + this.score;
+                    if (this.scoreLabel) this.scoreLabel.string = this.score.toString();
+                    if (this.score > this.bestScore) {
+                        this.bestScore = this.score; // Pecahkan rekor!
+                        
+                        // Tampilkan di layar secara real-time
+                        if (this.bestScoreLabel) {
+                            this.bestScoreLabel.string = "Best Score: " + this.bestScore;
+                        }
+
+                        // SIMPAN PERMANEN ke dalam memori komputer/HP pemain
+                        sys.localStorage.setItem("pacman_best_score", this.bestScore.toString());
+                    }
                 } else {
                     // --- LAMA: PAC-MAN KENA DAMAGE ---
                     this.takeDamage();
@@ -482,6 +522,7 @@ export class Pacman extends Component {
         if (this.health <= 0) {
             Pacman.GAME_UDAH_MULAI = false;
             if (this.gameOverPanel) this.gameOverPanel.active = true; // Munculkan Panel Game Over
+            if(this.autoButton) this.autoButton.active = false;   // Hilangkan Auto-Pilot
             if (this.pauseButton) this.pauseButton.active = false;   // Hilangkan Pause
             console.log("==== GAME OVER ===="); 
         } else {
