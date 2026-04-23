@@ -3,8 +3,6 @@ const { ccclass, property } = _decorator;
 
 enum PacmanDirection { RIGHT, LEFT, UP, DOWN, IDLE }
 
-// p
-
 @ccclass('Pacman')
 export class Pacman extends Component {
 
@@ -25,7 +23,7 @@ export class Pacman extends Component {
     @property({ type: Label, tooltip: "Label untuk menampilkan Best Score" })
     public bestScoreLabel: Label = null;
 
-    private bestScore: number = 0; // Untuk menyimpan angka rekor tertinggi
+    private bestScore: number = 0;
 
     @property({ type: Node })
     public startButton: Node = null;
@@ -41,7 +39,6 @@ export class Pacman extends Component {
 
     private isPaused: boolean = false;
 
-    // --- PROPERTI UI & NODE REFERENSI ---
     @property({ type: Node, tooltip: "Node Parent dari semua Hantu (Folder ghost)" })
     public ghostParent: Node = null;
 
@@ -57,7 +54,6 @@ export class Pacman extends Component {
     @property({ type: Label, tooltip: "Label teks untuk menampilkan skor" })
     public scoreLabel: Label = null;
 
-    // --- PROPERTI AI & AUTO-PILOT ---
     @property({ tooltip: "Aktifkan mode Bot AI Auto-Pilot" })
     public isAutoPilot: boolean = false;
 
@@ -67,17 +63,16 @@ export class Pacman extends Component {
     @property({ tooltip: "Radius deteksi makanan" })
     public foodDetectionRadius: number = 500;
 
-    // --- STATUS PEMAIN ---
     public score: number = 0;
     public health: number = 3;
 
     public isEnergized: boolean = false;
     private energizedTimer: number = 0;
-    private readonly ENERGIZED_DURATION: number = 7.0; // Durasi PowerUp 7 detik
+    private readonly ENERGIZED_DURATION: number = 7.0;
     
     private isInvulnerable: boolean = false;
     private invulnerableTimer: number = 0;
-    private readonly INVULNERABLE_DURATION: number = 2.0; // Masa kebal 2 detik setelah kena hit
+    private readonly INVULNERABLE_DURATION: number = 2.0;
 
     private animationComponent: Animation; 
     private moveDirection: Vec3 = new Vec3(0, 0, 0);
@@ -101,11 +96,9 @@ export class Pacman extends Component {
         let savedScore = sys.localStorage.getItem("pacman_best_score");
         
         if (savedScore) {
-            // Jika ada, ubah teksnya menjadi angka (karena localStorage menyimpannya sebagai teks)
             this.bestScore = parseInt(savedScore);
         }
 
-        // Tampilkan di layar
         if (this.bestScoreLabel) {
             this.bestScoreLabel.string = "Best Score: " + this.bestScore;
         }
@@ -153,11 +146,9 @@ export class Pacman extends Component {
             if (this.pauseButton) this.pauseButton.active = true;
         }
 
-        // --- BARU: Cari teks (Label) dan ubah sesuai status ---
         if (this.autoButton) {
             let buttonText = this.autoButton.getComponentInChildren(Label);
             if (buttonText) {
-                // Jika isAutoPilot true -> tulis "Manual", jika false -> tulis "Auto"
                 buttonText.string = this.isAutoPilot ? "Manual" : "Auto";
             }
         }
@@ -195,7 +186,7 @@ export class Pacman extends Component {
     update(deltaTime: number) {
         if(!Pacman.GAME_UDAH_MULAI) return;
 
-        // --- Logika Kebal & Kedap-Kedip ---
+        // Logic waktu kebal
         if (this.isInvulnerable) {
             this.invulnerableTimer += deltaTime;
             if (this.invulnerableTimer >= this.INVULNERABLE_DURATION) {
@@ -212,7 +203,7 @@ export class Pacman extends Component {
 
         this.checkFoodCollision();
 
-        // --- Logika PowerUp (Energized) ---
+        // Logic setelah makan PowerUp
         if (this.isEnergized) {
             this.energizedTimer += deltaTime;
             if (this.energizedTimer >= this.ENERGIZED_DURATION) {
@@ -238,9 +229,8 @@ export class Pacman extends Component {
             let newPos = new Vec3();
             Vec3.add(newPos, this.node.position, step);
 
-            // --- LOGIKA BATAS LAYAR (MANUAL VS AUTO) DENGAN ANTI-GETAR ---
+            //Logic biar arah gerak pac man auto tdk getar dan stuck ke satu arah
             if (this.isAutoPilot) {
-                // Saat Auto-Pilot: Memantul (Bounce) menggunakan Math.abs agar tegas merubah arah
                 if (newPos.x <= this.minX) { 
                     newPos.x = this.minX; 
                     this.moveDirection.x = Math.abs(this.moveDirection.x); 
@@ -257,7 +247,7 @@ export class Pacman extends Component {
                     this.moveDirection.y = -Math.abs(this.moveDirection.y); 
                 }
             } else {
-                // Saat Manual: Berhenti di tepi (Clamp)
+                // Kalau diubah ke manual
                 newPos.x = math.clamp(newPos.x, this.minX, this.maxX);
                 newPos.y = math.clamp(newPos.y, this.minY, this.maxY);
             }
@@ -266,7 +256,6 @@ export class Pacman extends Component {
         }
     }
 
-    // Dipanggil saat tombol Start ditekan
     public onStartButtonClicked() {
         Pacman.GAME_UDAH_MULAI = true;
         if (this.startButton) this.startButton.active = false;
@@ -274,30 +263,23 @@ export class Pacman extends Component {
         console.log("Game Dimulai!");
     }
 
-    // Dipanggil saat tombol Pause ditekan
     public onPauseButtonClicked() {
-
         if(Pacman.GAME_UDAH_MULAI){
              this.isPaused = !this.isPaused;
         
-            // --- BARU: Cari teks (Label) di dalam tombol Pause ---
             let buttonText = this.pauseButton.getComponentInChildren(Label);
             
             if (this.isPaused) {
-                // Memberhentikan waktu game
                 director.pause(); 
                 console.log("Game Paused");
                 
-                // --- BARU: Ubah teks menjadi Resume ---
                 if (buttonText) {
                     buttonText.string = "Resume";
                 }
             } else {
-                // Melanjutkan waktu game
                 director.resume();
                 console.log("Game Resumed");
                 
-                // --- BARU: Kembalikan teks menjadi Pause ---
                 if (buttonText) {
                     buttonText.string = "Pause";
                 }
@@ -345,7 +327,7 @@ export class Pacman extends Component {
             }
         }
 
-        //Nyari makanan (SEEK)
+        //Nyari makanan
         let seekVector = new Vec3(0, 0, 0);
         let closestFood = this.findClosestFood();
         if (closestFood) {
@@ -423,7 +405,6 @@ export class Pacman extends Component {
             let food = allFoods[i];
             if (!food.active) continue;
 
-            // Menggunakan worldPosition agar konsisten dengan AI
             let dist = Vec3.distance(this.node.worldPosition, food.worldPosition);
             if (dist < 30) {
                 this.eatFood(food);
@@ -438,7 +419,7 @@ export class Pacman extends Component {
             case "power": 
                 points = 50; 
                 this.isEnergized = true;
-                this.energizedTimer = 0; // Reset timer jika makan powerup lagi
+                this.energizedTimer = 0; // Reset timer kalo makan powerup lagi
                 console.log("PAC-MAN ENERGIZED! Hantu kabur!");
                 break;
             case "strawberry": points = 100; break;
@@ -452,14 +433,13 @@ export class Pacman extends Component {
         }
 
         if (this.score > this.bestScore) {
-            this.bestScore = this.score; // Pecahkan rekor!
+            this.bestScore = this.score;
             
-            // Tampilkan di layar secara real-time
             if (this.bestScoreLabel) {
                 this.bestScoreLabel.string = "Best Score: " + this.bestScore;
             }
 
-            // SIMPAN PERMANEN ke dalam memori komputer/HP pemain
+            // Simpen di localstorage pemain
             sys.localStorage.setItem("pacman_best_score", this.bestScore.toString());
         }
 
@@ -472,7 +452,7 @@ export class Pacman extends Component {
         let ghosts = this.ghostParent.children;
         for (let i = 0; i < ghosts.length; i++) {
             let ghost = ghosts[i];
-            if (!ghost.active) continue; // Abaikan hantu yang sudah mati/hilang
+            if (!ghost.active) continue;
 
             let dist = Vec3.distance(this.node.worldPosition, ghost.worldPosition);
             
@@ -480,27 +460,24 @@ export class Pacman extends Component {
                 if (this.isEnergized) {
                     let ghostScript = ghost.getComponent('GhostAI') as any;
                     if (ghostScript) {
-                        ghostScript.dieAndRespawn(); // <--- INI KUNCI AGAR HANTU BISA HIDUP LAGI
+                        ghostScript.dieAndRespawn();
                     } else {
-                        ghost.active = false; // Fallback aman jika script tidak terbaca
+                        ghost.active = false; // Fallback
                     }
 
-                    this.score += 200; // Bonus poin makan hantu
+                    this.score += 200;
                     console.log("Nyam! Pac-Man memakan hantu!");
                     if (this.scoreLabel) this.scoreLabel.string = this.score.toString();
                     if (this.score > this.bestScore) {
-                        this.bestScore = this.score; // Pecahkan rekor!
+                        this.bestScore = this.score;
                         
-                        // Tampilkan di layar secara real-time
                         if (this.bestScoreLabel) {
                             this.bestScoreLabel.string = "Best Score: " + this.bestScore;
                         }
 
-                        // SIMPAN PERMANEN ke dalam memori komputer/HP pemain
                         sys.localStorage.setItem("pacman_best_score", this.bestScore.toString());
                     }
                 } else {
-                    // --- LAMA: PAC-MAN KENA DAMAGE ---
                     this.takeDamage();
                     break; 
                 }
@@ -521,12 +498,12 @@ export class Pacman extends Component {
 
         if (this.health <= 0) {
             Pacman.GAME_UDAH_MULAI = false;
-            if (this.gameOverPanel) this.gameOverPanel.active = true; // Munculkan Panel Game Over
-            if(this.autoButton) this.autoButton.active = false;   // Hilangkan Auto-Pilot
-            if (this.pauseButton) this.pauseButton.active = false;   // Hilangkan Pause
+            if (this.gameOverPanel) this.gameOverPanel.active = true;
+            if (this.autoButton) this.autoButton.active = false;
+            if (this.pauseButton) this.pauseButton.active = false;
             console.log("==== GAME OVER ===="); 
         } else {
-            // KEMBALI KE POSISI AWAL (TENGAH) & RESET ARAH
+            // Kembali ke posisi awal
             this.node.setPosition(new Vec3(0, 0, 0));
             this.moveDirection = new Vec3(0, 0, 0);
 
@@ -547,17 +524,10 @@ export class Pacman extends Component {
         }
     }
 
-    // Dipanggil saat tombol Restart ditekan
     public onRestartButtonClicked() {
         console.log("Tombol Restart Ditekan! Memuat ulang game...");
-        
-        // 1. WAJIB: Cairkan waktu game jika sebelumnya sempat ter-pause
-        director.resume(); 
-        
-        // 2. WAJIB: Reset variabel static agar tidak nge-bug
-        Pacman.GAME_UDAH_MULAI = false; 
-
-        // 3. Reload scene saat ini
+        director.resume();
+        Pacman.GAME_UDAH_MULAI = false;
         director.loadScene("scene");
     }
 

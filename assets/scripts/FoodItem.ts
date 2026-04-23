@@ -10,7 +10,6 @@ export class FoodItem extends Component {
     private opacityComp: UIOpacity = null;
 
     start() {
-        // Ambil atau tambahkan komponen UIOpacity untuk mengatur transparansi
         this.opacityComp = this.getComponent(UIOpacity);
         if (!this.opacityComp) {
             this.opacityComp = this.addComponent(UIOpacity);
@@ -20,15 +19,13 @@ export class FoodItem extends Component {
     update(dt: number) {
         this.timer += dt;
 
-        // Mulai memudar saat waktu tersisa 3 detik
+        //Makanan mulai kedap-kedip saat waktu tersisa 3 detik
         if (this.timer > (this.lifespan - 3)) {
-            // Hitung sisa waktu dan ubah opacity (255 = penuh, 0 = hilang)
             let remaining = this.lifespan - this.timer;
-            let ratio = remaining / 3; // Rasio 1 ke 0 dalam 3 detik
+            let ratio = remaining / 3;
             this.opacityComp.opacity = ratio * 255;
         }
 
-        // Hancurkan objek jika waktu habis
         if (this.timer >= this.lifespan) {
             this.node.destroy();
         }
